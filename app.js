@@ -68,26 +68,43 @@ const ItemCtrl = (function () {
             data.items.push(newItem);
             return newItem;
         },
-        getItemById: function(id) {
+        getItemById: function (id) {
             let found = null;
 
             //loop through items 
-            data.items.forEach(function(item) {
-                if(item.id === id){
+            data.items.forEach(function (item) {
+                if (item.id === id) {
                     found = item
                 }
-                
+
             })
             return found;
 
-            
+
         },
-        setCurrentItem:function (item) {
+        updateItem: function (name, calories) {
+
+            //calories to numbers 
+            calories = parseInt(calories);
+            let found = null;
+
+            data.items.forEach(function (item) {
+                if (item.id === data.currentItem.id) {
+                    item.name = name;
+                    item.calories = calories
+                    found = item;
+                }
+            })
+            return found;
+
+        },
+
+        setCurrentItem: function (item) {
             data.currentItem = item;
-            
+
         },
-        getCurrentItem:function(){
-        return data.currentItem;
+        getCurrentItem: function () {
+            return data.currentItem;
         },
         getTotalCalorie: function () {
             let total = 0;
@@ -132,7 +149,10 @@ const UIctrl = (function () {
         totalcalories: ".total-calories",
         updateBtn: '.update-btn',
         deleteBtn: '.delete-btn',
-        backBtn:'.back-btn'
+        backBtn: '.back-btn',
+        listItems: '#item-list li'
+
+
 
 
 
@@ -148,10 +168,10 @@ const UIctrl = (function () {
 
                 html = html + `<li class="collection-item" id="item-${item.id}" >
                 <strong> ${item.name}:  </strong>
-               <em>  ${item.calories} calories </em>
-      <a href="#" class="secondary-content">
-    <i class="icon-pencil"></i></a>
-     </li>`;
+                <em>  ${item.calories} calories </em>
+                <a href="#" class="secondary-content">
+                <i class="icon-pencil"></i></a>
+                </li>`;
             });
 
 
@@ -176,8 +196,8 @@ const UIctrl = (function () {
             li.id = `item-${item.id}`
             li.innerHTML = `  <strong> ${item.name}:  </strong>
             <em>  ${item.calories} calories </em>
-<a href="#" class="secondary-content">
- <i class="edit-item icon-pencil"></i></a>`
+            <a href="#" class="secondary-content">
+            <i class="edit-item icon-pencil"></i></a>`
 
             //insert item 
             document.querySelector(UIselectors.itemlist).insertAdjacentElement('beforeend', li);
@@ -188,12 +208,37 @@ const UIctrl = (function () {
             document.querySelector(UIselectors.itemCaloriesinput).value = ''
 
         },
-        addItemtoForm:function(){
-            document.querySelector(UIselectors.itemNameInput).value =ItemCtrl.getCurrentItem().name;
+        addItemtoForm: function () {
+            document.querySelector(UIselectors.itemNameInput).value = ItemCtrl.getCurrentItem().name;
             document.querySelector(UIselectors.itemCaloriesinput).value = ItemCtrl.getCurrentItem().calories;
             UIctrl.showEditState();
 
         },
+        updateListItem: function (item) {
+            let listItems = document.querySelectorAll(UIselectors.listItems);
+
+            // turn node list into aray 
+            listItems = Array.from(listItems);
+
+            listItems.forEach(function (listItem) {
+                const itemID = listItem.getAttribute('id');
+
+                if (itemID === `item-${item.id}`) {
+                    document.querySelector(`#${itemID}`).innerHTML = `  <strong> ${item.name}:  </strong>
+                   <em>  ${item.calories} calories </em>
+                   <a href="#" class="secondary-content">
+                   <i class="edit-item icon-pencil"></i></a>`
+
+
+                }
+            }
+            )
+
+
+
+        },
+
+
         hideList: function () {
             document.querySelector(UIselectors.itemlist).style.display = 'none';
         },
@@ -201,7 +246,7 @@ const UIctrl = (function () {
             document.querySelector(UIselectors.totalcalories).innerHTML = `${totalCalories}`;
 
         },
-        clearEditState:function(){
+        clearEditState: function () {
             UIctrl.clearInput();
             document.querySelector(UIselectors.updateBtn).style.display = 'none';
             document.querySelector(UIselectors.deleteBtn).style.display = 'none';
@@ -210,7 +255,7 @@ const UIctrl = (function () {
 
 
         },
-     showEditState:function(){
+        showEditState: function () {
             document.querySelector(UIselectors.updateBtn).style.display = 'inline';
             document.querySelector(UIselectors.deleteBtn).style.display = 'inline';
             document.querySelector(UIselectors.backBtn).style.display = 'inline';
@@ -237,7 +282,7 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
         //get UI selectors 
         const UIselectors = UIctrl.getSelectors();
 
-        
+
         //add-item event 
         document.querySelector(UIselectors.addBtn).addEventListener('click',
             function itemaddSubmit(e) {
@@ -274,40 +319,88 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
                 e.preventDefault();
             });
 
+        //disable submit on enter 
+        document.addEventListener('keypress', function (e) {
+            if (e.keyCode === 13 || e.which === 13) {
+                e.preventDefault();
+                return false;
+            }
+        })
         //add event listerer to pencil icon
-        document.querySelector(UIselectors.itemlist).addEventListener('click', 
-        function itemUpdateSubmit(e){
-             //targeting only pencil icon 
-           if(e.target.classList.contains('edit-item')){
-              
-
-               //get list item ID 
-               const listId = e.target.parentNode.parentNode.id
+        document.querySelector(UIselectors.itemlist).addEventListener('click',
+            function itemEditClick(e) {
+                //targeting only pencil icon 
+                if (e.target.classList.contains('edit-item')) {
 
 
-               //break into array 
-               const listIdArr = listId.split('-');
-
-               //get actual id 
-               const id = parseInt(listIdArr[1]);
+                    //get list item ID 
+                    const listId = e.target.parentNode.parentNode.id
 
 
-               //get item 
-               const itemtoEdit = ItemCtrl.getItemById(id);
-                // console.log(itemtoEdit.id)
+                    //break into array 
+                    const listIdArr = listId.split('-');
 
-                 //set item to cuurent item 
-                ItemCtrl.setCurrentItem(itemtoEdit);
+                    //get actual id 
+                    const id = parseInt(listIdArr[1]);
 
-                //add item to form 
-                UIctrl.addItemtoForm();
 
-           }
-            e.preventDefault();
-        });
+                    //get item 
+                    const itemtoEdit = ItemCtrl.getItemById(id);
+                    // console.log(itemtoEdit.id)
 
-           
+                    //set item to cuurent item 
+                    ItemCtrl.setCurrentItem(itemtoEdit);
 
+                    //add item to form 
+                    UIctrl.addItemtoForm();
+
+                }
+                e.preventDefault();
+            });
+
+
+        //add event listerer toupdate button 
+        document.querySelector(UIselectors.updateBtn).addEventListener('click',
+
+
+
+
+
+
+
+
+
+            function itemUpdateSubmit(e) {
+                //get item input
+                const input = UIctrl.getItemInput();
+
+                //update item 
+                const updateItem = ItemCtrl.updateItem(input.name, input.calories);
+
+
+                //update ui
+                //put updated item on the UI 
+                UIctrl.updateListItem(updateItem);
+
+
+                //get total cal 
+                const totalCalories = ItemCtrl.getTotalCalorie();
+
+
+                //add total cal to UI
+                UIctrl.showTotalCalories(totalCalories);
+
+             UIctrl.clearEditState();
+
+                e.preventDefault();
+
+            }
+
+
+
+
+
+        )
     }
 
 
@@ -319,7 +412,7 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
     //public methods 
     return {
         init: function () {
-              //clear edit state / or set initial stage to non edit 
+            //clear edit state / or set initial stage to non edit 
 
             UIctrl.clearEditState();
             //fetch items from datastructure 
@@ -340,7 +433,7 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
             //putted show totaal cal here as we want when our app intilizes
             // we have total calories there 
             //this will be done better when we have local storage 
-            
+
             //get total cal 
             const totalCalories = ItemCtrl.getTotalCalorie();
 
