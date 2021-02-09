@@ -98,6 +98,28 @@ const ItemCtrl = (function () {
             return found;
 
         },
+        deleteItem: function (id) {
+
+            //get ids
+            const ids = data.items.map(function (item) {
+                return item.id
+            });
+
+            //get index 
+
+            const index = ids.indexOf(id);
+
+
+            //remove item 
+
+            data.items.splice(index,1);
+
+
+
+        },
+        clearAllItems:function(){
+               data.items=[];
+        },
 
         setCurrentItem: function (item) {
             data.currentItem = item;
@@ -148,6 +170,7 @@ const UIctrl = (function () {
         itemCaloriesinput: '#item-calorie',
         totalcalories: ".total-calories",
         updateBtn: '.update-btn',
+        clearBtn:'.clear-btn',
         deleteBtn: '.delete-btn',
         backBtn: '.back-btn',
         listItems: '#item-list li'
@@ -237,6 +260,14 @@ const UIctrl = (function () {
 
 
         },
+        deleteListItem: function (id) {
+            const itemID = `#item-${id}`
+            const item = document.querySelector(itemID);
+            item.remove();
+
+        },
+
+
 
 
         hideList: function () {
@@ -245,6 +276,18 @@ const UIctrl = (function () {
         showTotalCalories: function (totalCalories) {
             document.querySelector(UIselectors.totalcalories).innerHTML = `${totalCalories}`;
 
+        },
+        removeItems:function(){
+              let listItems = document.querySelectorAll(UIselectors.listItems);
+              
+              //turn the above listitems into array 
+
+              listItems= Array.from(listItems);
+
+             listItems.forEach(function(item){
+                 item.remove()
+
+             })
         },
         clearEditState: function () {
             UIctrl.clearInput();
@@ -281,7 +324,6 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
 
         //get UI selectors 
         const UIselectors = UIctrl.getSelectors();
-
 
         //add-item event 
         document.querySelector(UIselectors.addBtn).addEventListener('click',
@@ -359,16 +401,10 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
             });
 
 
+
+
         //add event listerer toupdate button 
         document.querySelector(UIselectors.updateBtn).addEventListener('click',
-
-
-
-
-
-
-
-
 
             function itemUpdateSubmit(e) {
                 //get item input
@@ -390,7 +426,7 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
                 //add total cal to UI
                 UIctrl.showTotalCalories(totalCalories);
 
-             UIctrl.clearEditState();
+                UIctrl.clearEditState();
 
                 e.preventDefault();
 
@@ -401,6 +437,65 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
 
 
         )
+        //back button event listerer
+        document.querySelector(UIselectors.backBtn).addEventListener('click', UIctrl.clearEditState);
+
+
+        //delete event listerer
+        document.querySelector(UIselectors.deleteBtn).addEventListener('click',
+            function itemDeleteSubmit(e) {
+
+                //get current Item 
+                const currentItem = ItemCtrl.getCurrentItem();
+
+                //delete from data structure 
+                ItemCtrl.deleteItem(currentItem.id);
+
+
+                // delete item from the UI
+                UIctrl.deleteListItem(currentItem.id);
+
+                //get total cal 
+                const totalCalories = ItemCtrl.getTotalCalorie();
+                //add total cal to UI
+                UIctrl.showTotalCalories(totalCalories);
+
+                UIctrl.clearEditState();
+
+
+                e.preventDefault();
+
+            });
+
+            //clear button event listerer
+        document.querySelector(UIselectors.clearBtn).addEventListener('click', 
+        function clearAllitemsClick(){
+            //delete all items from data sructure
+            ItemCtrl.clearAllItems();
+
+
+            //remove from UI 
+            UIctrl.removeItems();
+
+             //get total cal 
+             const totalCalories = ItemCtrl.getTotalCalorie();
+             //add total cal to UI
+             UIctrl.showTotalCalories(totalCalories);
+
+
+             //hide the uL 
+
+             UIctrl.hideList();
+
+             //clear input 
+             UIctrl.clearEditState();
+
+        
+
+        });
+
+
+
     }
 
 
