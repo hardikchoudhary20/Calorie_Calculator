@@ -1,4 +1,52 @@
 //storage controller 
+const StorageCtrl = (function(){
+   
+
+    //public methods 
+    return{
+        storeItem:function(item){
+            let items;
+            //check if any items in local storage 
+
+            if(localStorage.getItem('items')=== null){
+
+                  items =[];
+
+                  //push the new item 
+                  items.push(item);
+
+                  //se item to local storage 
+                  localStorage.setItem('items',JSON.stringify(items));
+
+            }
+            else{
+                    //get what already is in local storage  
+                    items= JSON.parse(localStorage.getItem('items'))
+
+                    //push the new item 
+                     items.push(item);
+
+                    // reset local storage 
+                    localStorage.setItem('items',JSON.stringify(items));
+
+            }
+
+        },
+        getItemfromStorage:function(){
+
+            let items;
+            if(localStorage.getItem('items')=== null){
+                    items= [];
+
+            }
+            else{
+                items= JSON.parse(localStorage.getItem('items'));
+            }
+            return items;
+
+        }
+    }
+})();
 
 //item controller
 
@@ -19,24 +67,25 @@ const ItemCtrl = (function () {
     const data = {
 
         //     //item is private (module pattern)
-        items: [
-            // {
-            //                 id: 0,
-            //                 name: "apple",
-            //                 calories: 200
-            //             },
-            //             {
+        // items: [
+        //     // {
+        //     //                 id: 0,
+        //     //                 name: "apple",
+        //     //                 calories: 200
+        //     //             },
+        //     //             {
 
-            //                 id: 1,
-            //                 name: "eggs",
-            //                 calories: 300
-            //             },
-            //             {
-            //                 id: 3,
-            //                 name: "maggi",
-            //                 calories: 700
-            //             }
-        ],
+        //     //                 id: 1,
+        //     //                 name: "eggs",
+        //     //                 calories: 300
+        //     //             },
+        //     //             {
+        //     //                 id: 3,
+        //     //                 name: "maggi",
+        //     //                 calories: 700
+        //     //             }
+        // ],
+        items:StorageCtrl.getItemfromStorage(),
         currentItem: null,
         totalCalories: 0
     };
@@ -315,7 +364,7 @@ const UIctrl = (function () {
 //App controller
 
 
-const Appctrl = (function (ItemCtrl, UIctrl) {
+const Appctrl = (function (ItemCtrl, UIctrl, StorageCtrl) {
     // console.log(ItemCtrl.logData());
 
     //load event listeners 
@@ -328,6 +377,7 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
         //add-item event 
         document.querySelector(UIselectors.addBtn).addEventListener('click',
             function itemaddSubmit(e) {
+
                 // console.log("Add")
 
                 //get form input from UI controller 
@@ -355,6 +405,10 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
                 //add total cal to UI
                 UIctrl.showTotalCalories(totalCalories);
 
+
+
+                //store in local storage 
+                StorageCtrl.storeItem(newItem);
                 //clear fiels 
                 UIctrl.clearInput();
 
@@ -544,7 +598,7 @@ const Appctrl = (function (ItemCtrl, UIctrl) {
     }
 
 
-})(ItemCtrl, UIctrl)
+})(ItemCtrl, UIctrl,StorageCtrl)
 
 
 //initialize app 
